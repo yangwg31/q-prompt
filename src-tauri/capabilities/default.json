@@ -1,0 +1,20 @@
+{
+  "identifier": "default",
+  "description": "Default capabilities for Q-Prompt",
+  "windows": ["quick-bar", "manager"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "global-shortcut:default",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+    "global-shortcut:allow-is-registered",
+    "clipboard-manager:default",
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text",
+    "dialog:default",
+    "dialog:allow-ask",
+    "dialog:allow-confirm",
+    "dialog:allow-message"
+  ]
+}

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Q-Prompt 管理面板</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+    background: #1e1e1e;
+    color: #ccc;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    display: flex;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+  }
+  .tab {
+    padding: 8px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: #888;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab:hover { color: #ccc; }
+  .tab.active { color: #4ec9b0; border-bottom-color: #4ec9b0; }
+  #toolbar {
+    display: flex; gap: 8px; padding: 8px 12px;
+    align-items: center; border-bottom: 1px solid #333; flex-shrink: 0;
+  }
+  #search {
+    flex: 1; padding: 4px 10px; border-radius: 4px; border: 1px solid #444;
+    background: #2d2d2d; color: #ddd; font-size: 13px; outline: none;
+  }
+  #search:focus { border-color: #4ec9b0; }
+  button {
+    padding: 4px 12px; border-radius: 4px; border: 1px solid #444;
+    background: #2d2d2d; color: #ccc; cursor: pointer; font-size: 13px;
+    white-space: nowrap; transition: background 0.15s;
+  }
+  button:hover { background: #3d3d3d; }
+  button.primary { background: #0e7a5c; border-color: #0e7a5c; color: #fff; }
+  button.primary:hover { background: #0f8f6c; }
+  button.danger { background: #8b2e2e; border-color: #8b2e2e; color: #fff; }
+  #list-wrap { flex: 1; overflow-y: auto; padding: 4px 0; }
+  #list-wrap.hidden { display: none; }
+  .row {
+    display: grid; grid-template-columns: 24px 1fr 2fr 50px 50px 50px;
+    align-items: center; gap: 6px; padding: 6px 12px; cursor: pointer;
+    border-bottom: 1px solid #2a2a2a; transition: background 0.1s;
+  }
+  .row:hover { background: #2a2a2a; }
+  .row.selected { background: #2a3a3a; }
+  .row .drag-handle { color: #555; cursor: grab; text-align: center; }
+  .row .drag-handle:active { cursor: grabbing; }
+  .row .name { font-weight: 500; color: #ddd; }
+  .row .summary { color: #888; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .count { text-align: center; color: #666; font-size: 11px; }
+  .row .actions { display: flex; gap: 4px; justify-content: center; }
+  .row .actions span { cursor: pointer; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+  .row .actions .edit-btn { color: #569cd6; }
+  .row .actions .edit-btn:hover { background: rgba(86,156,214,0.15); }
+  .row .actions .del-btn { color: #ce6b6b; }
+  .row .actions .del-btn:hover { background: rgba(206,107,107,0.15); }
+  #bottom-bar {
+    display: flex; gap: 8px; padding: 8px 12px;
+    border-top: 1px solid #333; flex-shrink: 0;
+  }
+  .overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: #2d2d2d; border: 1px solid #555; border-radius: 8px;
+    padding: 20px; width: 450px; max-height: 80vh; overflow-y: auto;
+  }
+  .modal h3 { margin-bottom: 12px; color: #ddd; }
+  .modal label { display: block; margin: 8px 0 4px; color: #aaa; font-size: 12px; }
+  .modal input, .modal textarea {
+    width: 100%; padding: 6px 10px; border-radius: 4px; border: 1px solid #444;
+    background: #1e1e1e; color: #ddd; font-size: 13px; font-family: inherit; outline: none;
+  }
+  .modal textarea { min-height: 100px; resize: vertical; }
+  .modal input:focus, .modal textarea:focus { border-color: #4ec9b0; }
+  .modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  #shortcut-tab { display: none; padding: 12px; flex: 1; overflow-y: auto; }
+  #shortcut-tab.show { display: block; }
+  .sc-row {
+    display: grid; grid-template-columns: 200px 120px 80px;
+    align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid #2a2a2a;
+  }
+  .sc-row .sc-name { color: #ddd; }
+  .sc-row .sc-key {
+    background: #2d2d2d; padding: 2px 8px; border-radius: 4px;
+    border: 1px solid #444; color: #4ec9b0; text-align: center; font-family: 'Consolas', monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    body { background: #f5f5f5; color: #333; }
+    header { border-bottom-color: #ddd; }
+    #toolbar { border-bottom-color: #ddd; }
+    #search { background: #fff; border-color: #ccc; color: #333; }
+    button { background: #eee; border-color: #ccc; color: #333; }
+    button:hover { background: #ddd; }
+    .row { border-bottom-color: #eee; }
+    .row:hover { background: #e8e8e8; }
+    .row.selected { background: #d0e8e8; }
+    #bottom-bar { border-top-color: #ddd; }
+    .modal { background: #fff; border-color: #ccc; }
+    .modal input, .modal textarea { background: #f5f5f5; border-color: #ccc; color: #333; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="tab active" data-tab="list">提示词列表</div>
+  <div class="tab" data-tab="shortcut">快捷键</div>
+</header>
+<div id="toolbar">
+  <input id="search" type="text" placeholder="搜索提示词... (Ctrl+F)" />
+  <button id="add-btn" class="primary">+ 新增</button>
+</div>
+<div id="list-wrap"><div id="list"></div></div>
+<div id="shortcut-tab"></div>
+<div id="bottom-bar">
+  <button id="export-btn">导出 JSON</button>
+  <button id="import-btn">导入 JSON</button>
+</div>
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">新增提示词</h3>
+    <label>名称（2-4字）</label>
+    <input id="modal-name" type="text" maxlength="10" placeholder="例如：复核代码" />
+    <label>内容（支持 {{变量}} 和 {{selection}}）</label>
+    <textarea id="modal-content" placeholder="提示词内容..."></textarea>
+    <div class="actions">
+      <button id="modal-cancel">取消</button>
+      <button id="modal-save" class="primary">保存</button>
+    </div>
+  </div>
+</div>
+<script type="module" src="/src/manager.js"></script>
+</body>
+</html>

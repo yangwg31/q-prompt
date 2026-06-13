@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Q-Prompt</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: transparent;
+    overflow: hidden;
+    height: 36px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    user-select: none;
+  }
+  #bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 2px 10px;
+    border-radius: 8px;
+    background: rgba(30, 30, 30, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    color: #c0c0c0;
+    white-space: nowrap;
+    transition: opacity 0.2s, background 0.2s, box-shadow 0.2s;
+    -webkit-app-region: drag;
+    width: max-content;
+    max-width: 90vw;
+  }
+  #bar:hover {
+    background: rgba(30, 30, 30, 0.85);
+    opacity: 0.95;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.30);
+  }
+  #brand {
+    font-weight: 700;
+    color: #4ec9b0;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .sep {
+    color: #555;
+    flex-shrink: 0;
+    -webkit-app-region: drag;
+  }
+  .prompt-tag {
+    padding: 1px 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+  }
+  .prompt-tag:hover {
+    background: rgba(255,255,255,0.10);
+    color: #fff;
+  }
+  .prompt-tag.selected {
+    font-weight: 700;
+    color: #fff;
+  }
+  .dot {
+    font-size: 8px;
+    color: #4ec9b0;
+    margin-left: 1px;
+    flex-shrink: 0;
+  }
+  #menu-btn {
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: #888;
+    flex-shrink: 0;
+  }
+  #menu-btn:hover { color: #fff; }
+
+  /* Right-click context menu */
+  #ctx-menu {
+    display: none;
+    position: fixed;
+    background: #2d2d2d;
+    border: 1px solid #555;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    z-index: 9999;
+    min-width: 100px;
+    padding: 4px 0;
+  }
+  #ctx-menu .ctx-item {
+    padding: 6px 16px;
+    cursor: pointer;
+    color: #ddd;
+    font-size: 12px;
+  }
+  #ctx-menu .ctx-item:hover { background: #3d3d3d; }
+
+  /* Toast */
+  #toast {
+    display: none;
+    position: fixed;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  @media (prefers-color-scheme: light) {
+    #bar {
+      background: rgba(255,255,255,0.60);
+      border-color: rgba(0,0,0,0.08);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      color: #444;
+    }
+    #bar:hover {
+      background: rgba(255,255,255,0.90);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+    #brand { color: #0e7a5c; }
+    .sep { color: #ccc; }
+    .prompt-tag:hover { background: rgba(0,0,0,0.06); color: #111; }
+    .prompt-tag.selected { color: #111; }
+    #menu-btn { color: #aaa; }
+    #menu-btn:hover { color: #333; }
+  }
+</style>
+</head>
+<body>
+<div id="bar">
+  <span id="brand">Q</span>
+  <span class="sep">│</span>
+  <span id="tags"></span>
+  <span class="sep">│</span>
+  <span id="menu-btn" title="管理面板">⋮</span>
+</div>
+<div id="ctx-menu"></div>
+<div id="toast"></div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
