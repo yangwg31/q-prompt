@@ -268,6 +268,22 @@ pub fn quick_save(state: tauri::State<'_, AppState>, name: String, content: Stri
     add_prompt(state, name, content)
 }
 
+// ── File-based export/import (avoids needing plugin-fs) ──
+
+#[tauri::command]
+pub fn export_to_file(state: tauri::State<'_, AppState>, path: String) -> Result<(), String> {
+    let store = state.store.lock().unwrap();
+    let prompts = store.load_prompts();
+    let json = serde_json::to_string_pretty(&prompts).unwrap_or_else(|_| "[]".into());
+    std::fs::write(&path, json).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn import_from_file(state: tauri::State<'_, AppState>, path: String) -> Result<usize, String> {
+    let data = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    import_prompts(state, data)
+}
+
 // ── Record usage ──
 
 #[tauri::command]

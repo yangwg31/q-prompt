@@ -50,6 +50,8 @@ pub fn run() {
             commands::insert_text,
             commands::capture_selection,
             commands::quick_save,
+            commands::export_to_file,
+            commands::import_from_file,
             commands::record_usage,
             commands::open_manager_window,
         ])
