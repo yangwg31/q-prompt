@@ -227,22 +227,24 @@ function keyEventToLabel(e) {
   return parts.join('+');
 }
 
-recOverlay.addEventListener('keydown', (e) => {
+recOverlay.addEventListener('click', (e) => {
+  if (e.target === recOverlay && recDisplay.classList.contains('recording')) {
+    cancelRecording();
+  }
+});
+
+// Listen on document so recording captures all keypresses
+document.addEventListener('keydown', (e) => {
+  if (!recOverlay.classList.contains('show')) return;
   e.preventDefault();
-  e.stopPropagation();
+  e.stopImmediatePropagation();
   if (e.key === 'Escape') { cancelRecording(); return; }
   if (e.key === 'Enter') { confirmRecording(); return; }
-  if (e.key === 'Tab') return; // allow natural tab
+  if (e.key === 'Tab') return;
   const label = keyEventToLabel(e);
   if (label) {
     recDisplay.textContent = label;
     recDisplay.classList.remove('recording');
-  }
-});
-
-recOverlay.addEventListener('click', (e) => {
-  if (e.target === recOverlay && recDisplay.classList.contains('recording')) {
-    cancelRecording();
   }
 });
 
