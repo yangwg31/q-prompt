@@ -176,6 +176,76 @@ const shortcutLabels = {
   quick_save: '快速保存',
 };
 
+const ALL_MODIFIERS = ['Control', 'Alt', 'Shift', 'Meta'];
+
+let recTargetKey = null;
+const recOverlay = document.getElementById('rec-overlay');
+const recDisplay = document.getElementById('rec-display');
+
+function startRecording(key) {
+  recTargetKey = key;
+  recDisplay.textContent = '等待按键...';
+  recDisplay.classList.add('recording');
+  recOverlay.classList.add('show');
+  recDisplay.focus();
+}
+
+function cancelRecording() {
+  recTargetKey = null;
+  recOverlay.classList.remove('show');
+}
+
+async function confirmRecording() {
+  const text = recDisplay.textContent.trim();
+  if (!text || text === '等待按键...') return;
+  recOverlay.classList.remove('show');
+  try {
+    await invoke('update_shortcut', { key: recTargetKey, newShortcut: text });
+    await renderShortcuts();
+  } catch (e) {
+    alert('快捷键注册失败: ' + e);
+  }
+  recTargetKey = null;
+}
+
+function keyEventToLabel(e) {
+  if (e.key === 'Control' || e.key === 'Alt' || e.key === 'Shift' || e.key === 'Meta') return null;
+  const parts = [];
+  if (e.ctrlKey) parts.push('Ctrl');
+  if (e.altKey) parts.push('Alt');
+  if (e.shiftKey) parts.push('Shift');
+  if (e.metaKey) parts.push('Meta');
+  let keyName = e.key;
+  if (keyName === ' ') keyName = 'Space';
+  else if (keyName.length === 1) keyName = keyName.toUpperCase();
+  else if (keyName === 'ArrowUp') keyName = 'Up';
+  else if (keyName === 'ArrowDown') keyName = 'Down';
+  else if (keyName === 'ArrowLeft') keyName = 'Left';
+  else if (keyName === 'ArrowRight') keyName = 'Right';
+  else if (keyName === 'Escape') return null;
+  parts.push(keyName);
+  return parts.join('+');
+}
+
+recOverlay.addEventListener('keydown', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.key === 'Escape') { cancelRecording(); return; }
+  if (e.key === 'Enter') { confirmRecording(); return; }
+  if (e.key === 'Tab') return; // allow natural tab
+  const label = keyEventToLabel(e);
+  if (label) {
+    recDisplay.textContent = label;
+    recDisplay.classList.remove('recording');
+  }
+});
+
+recOverlay.addEventListener('click', (e) => {
+  if (e.target === recOverlay && recDisplay.classList.contains('recording')) {
+    cancelRecording();
+  }
+});
+
 async function renderShortcuts() {
   const keys = Object.keys(shortcutLabels);
   const rows = [];
@@ -193,14 +263,7 @@ async function renderShortcuts() {
     `).join('');
 
   shortcutTab.querySelectorAll('button[data-sc-key]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const key = btn.dataset.scKey;
-      const current = await invoke('get_shortcut', { key });
-      const ns = prompt(`为「${shortcutLabels[key]}」输入新快捷键：\n当前: ${current}\n示例: Ctrl+Shift+Q`, current);
-      if (!ns || ns === current) return;
-      try { await invoke('update_shortcut', { key, newShortcut: ns }); await renderShortcuts(); }
-      catch (e) { alert('快捷键注册失败: ' + e); }
-    });
+    btn.addEventListener('click', () => startRecording(btn.dataset.scKey));
   });
 }
 
@@ -208,14 +271,15 @@ async function renderShortcuts() {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     e.preventDefault();
-    if (overlay.classList.contains('show')) {
-      overlay.classList.remove('show');
-    } else {
-      getCurrentWindow().close();
-    }
+    if (recOverlay.classList.contains('show')) { cancelRecording(); return; }
+    if (overlay.classList.contains('show')) { overlay.classList.remove('show'); return; }
+    getCurrentWindow().close();
     return;
   }
+  if (e.key === 'Enter' && recOverlay.classList.contains('show')) { confirmRecording(); return; }
+  if (recOverlay.classList.contains('show')) return;
   if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); searchEl.focus(); }
+  if (recOverlay.classList.contains('show')) return;
   if (document.activeElement === searchEl || overlay.classList.contains('show')) return;
   if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
     const rows = [...listEl.querySelectorAll('.row')];

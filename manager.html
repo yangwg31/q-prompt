@@ -90,6 +90,34 @@
   .modal textarea { min-height: 100px; resize: vertical; }
   .modal input:focus, .modal textarea:focus { border-color: #4ec9b0; }
   .modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+  /* Shortcut recording */
+  #rec-modal { text-align: center; }
+  #rec-display {
+    display: inline-block;
+    min-width: 160px;
+    padding: 12px 24px;
+    margin: 16px 0;
+    border-radius: 6px;
+    border: 2px dashed #4ec9b0;
+    background: rgba(78,201,176,0.08);
+    color: #4ec9b0;
+    font-size: 20px;
+    font-family: 'Consolas', monospace;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  #rec-display.recording {
+    border-color: #f0c040;
+    background: rgba(240,192,64,0.10);
+    color: #f0c040;
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { border-color: #f0c040; box-shadow: 0 0 0 rgba(240,192,64,0); }
+    50% { border-color: #f0c040; box-shadow: 0 0 12px rgba(240,192,64,0.3); }
+  }
+  #rec-hint { color: #888; font-size: 12px; margin-top: 4px; }
+
   #shortcut-tab { display: none; padding: 12px; flex: 1; overflow-y: auto; }
   #shortcut-tab.show { display: block; }
   .sc-row {
@@ -143,6 +171,13 @@
       <button id="modal-cancel">取消</button>
       <button id="modal-save" class="primary">保存</button>
     </div>
+  </div>
+</div>
+<div class="overlay" id="rec-overlay">
+  <div class="modal" id="rec-modal">
+    <h3>按下新的快捷键组合</h3>
+    <div id="rec-display" class="recording">等待按键...</div>
+    <p id="rec-hint">按 Esc 取消，按 Enter 确认</p>
   </div>
 </div>
 <script type="module" src="/src/manager.js"></script>
